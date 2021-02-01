@@ -42,46 +42,49 @@ const Matrix = {
     },
 
     /**
-     * Returns an identity matrix translated by the given coordinates.
+     * Translates a matrix.
+     * @param {number[]} mat Matrix to translate
      * @param {number} tx X-translation
      * @param {number} ty Y-translation
      * @returns {number[]}
      */
-    translation: function(tx, ty) {
-        return [
-            1, 0, 0,
+    translation: function(mat,tx,ty) {
+        return Matrix.multiply(mat,
+        [   1, 0, 0,
             0, 1, 0,
-            tx, ty, 1,
-        ];
+            tx, ty, 1
+        ]);
     },
     
     /**
-     * Returns an identity matrix rotated by the given angle.
+     * Rotates a matrix.
+     * @param {number[]} mat Matrix to rotate
      * @param {number} angleInRadians 
      * @returns {number[]}
      */
-    rotation: function(angleInRadians) {
+    rotation: function(mat,angleInRadians) {
         var c = Math.cos(angleInRadians);
         var s = Math.sin(angleInRadians);
-        return [
-            c,-s, 0,
+        return Matrix.multiply(mat,
+        [   c,-s, 0,
             s, c, 0,
-            0, 0, 1,
-        ];
+            0, 0, 1
+        ]);
     },
     
     /**
-     * Returns an identity matrix scaled by the given factors.
+     * Scales a matrix.
+     * @param {number[]} mat Matrix to scale
      * @param {number} sx Scale factor X
      * @param {number} sy Scale factor Y
      * @returns {number[]}
      */
-    scaling: function(sx, sy) {
-        return [
-            sx, 0, 0,
+    scaling: function(mat,sx,sy) {
+        return Matrix.multiply(mat,
+        [   sx, 0, 0,
             0, sy, 0,
-            0, 0, 1,
-        ];
+            0, 0, 1
+        ]);
     },
 
     projection: [
