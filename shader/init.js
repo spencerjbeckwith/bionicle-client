@@ -79,6 +79,19 @@ function makeImageShader() {
     gl.enableVertexAttribArray(shader.textureAttribute);
     gl.vertexAttribPointer(shader.textureAttribute,2,gl.FLOAT,false,0,0);
 
+    shader.use = function() {
+        // Override's class use function to reset properly
+        if (currentShader !== this) {
+            currentShader = this;
+            gl.useProgram(this.program);
+
+            // Reset proper attributes, in case we were last using the primitive shader
+            gl.bindBuffer(gl.ARRAY_BUFFER,shader.buffer);
+            gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positionOrder),gl.STATIC_DRAW);
+            gl.vertexAttribPointer(primitiveShader.positionAttribute,2,gl.FLOAT,false,0,0);
+        }
+    }
+
     return shader;
 }
 

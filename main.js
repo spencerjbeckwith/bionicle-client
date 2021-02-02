@@ -1,31 +1,13 @@
-import Matrix from './util/matrix.js';
 
-import { currentShader, imageShader } from './shader/init.js';
 import { gl, loadTexture, beginRender, drawGameTexture, drawLine, drawRectangle, drawCircle, drawPrimitive} from './shader/gl.js';
+import config from './config.js';
+
+import { drawSprite, spr } from './sprite.js';
 
 // Main loop
 function main() {
     // Set rendering on framebuffer and with correct texture
     beginRender(texture);
-
-    // // //
-    
-    // Texture example
-    // Set position matrix
-    let mat = Matrix.projection;
-    mat = Matrix.translation(mat,0,0);
-    mat = Matrix.scaling(mat,400,240);
-
-    gl.uniformMatrix3fv(imageShader.positionMatrix,false,mat);
-
-    // Set texture matrix
-    mat = Matrix.identity;
-    mat = Matrix.translation(mat,1/5,1/5);
-    mat = Matrix.scaling(mat,40/100,40/100);
-
-    gl.uniformMatrix3fv(imageShader.textureMatrix,false,mat);
-
-    gl.drawArrays(gl.TRIANGLES,0,6);
 
     // Primitive shape examples
 
@@ -39,6 +21,27 @@ function main() {
 
     drawPrimitive(gl.TRIANGLE_FAN,[300,60, 320,80, 360,10, 380,40, 300,100, 340,120],0,1,0,1);
 
+    // Sprite examples
+    
+    drawSprite(spr.head,0,20,100);
+    drawSprite(spr.head,0,20,140);
+    drawSprite(spr.head,0,20,180);
+
+    drawSprite(spr.kanohi,0,20,100,1,196/255,40/255,27/255);
+    drawSprite(spr.kanohi,1,20,140,1,98/255,71/255,50/255);
+    drawSprite(spr.kanohi,2,20,180,1,1,1,1);
+
+    // To do next:
+    // - make sprite transform fns
+    // - palette swapping
+    //      Now here's the question. You can accomplish palette swaps by blending white sprites to the colors you need,
+    //      which works perfectly for sprites of that size. But it would give more control to have specific palette textures,
+    //      then you can blend specific colors and leave others unaffected.
+    //      See if you can make a palette swap shader, and if not, you can use blending on sprites.
+    // - draw more masks
+    // - migrate to a better project environment
+    //  - while you're at it, make your own atlas generation script.
+
     // // //
 
     drawGameTexture();
@@ -50,7 +53,7 @@ let texture = null;
 (async () => {
 
     // Loading resources here
-    texture = await loadTexture('tex.png');
+    texture = await loadTexture('atlas.png');
 
     main();
 })();
