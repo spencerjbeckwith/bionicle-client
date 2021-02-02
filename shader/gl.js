@@ -1,6 +1,6 @@
 import config from '../config.js';
 import { gl, ctx, canvas } from './document.js';
-import { imageShader } from './init.js';
+import { imageShader, primitiveShader } from './init.js';
 
 /**
  * Asynchronously loads a new texture and configures it.
@@ -44,8 +44,9 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,config.width,config.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
-let gameTexturePositionMatrix = [2, 0, 0, 0, -2, 0, -1, 1, 1];
-let gameTextureIdentityMatrix = [1, 0, 0, 0, -1, 0, 0, 1, 1];
+const gameTexturePositionMatrix = [2, 0, 0, 0, -2, 0, -1, 1, 1];
+const gameTextureIdentityMatrix = [1, 0, 0, 0, -1, 0, 0, 1, 1];
+let gameTextureBlend = [1,1,1,1];
 
 // Set up our framebuffer
 const frameBuffer = gl.createFramebuffer();
@@ -65,6 +66,7 @@ function beginRender(atlasTexture) {
     ctx.save();
     gl.bindTexture(gl.TEXTURE_2D,atlasTexture);
     imageShader.use();
+    gl.uniform4f(imageShader.blendUniform,1,1,1,1);
 }
 
 /**
@@ -80,10 +82,92 @@ function drawGameTexture() {
     
     // Use the right shader and set our precalculated matrices
     imageShader.use();
+
+    // Update our bound buffer to the correct type
+    gl.bindBuffer(gl.ARRAY_BUFFER,imageShader.buffer);
+    gl.enableVertexAttribArray(imageShader.positionAttribute);
+    gl.vertexAttribPointer(imageShader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Update uniforms and draw the arrays
     gl.uniformMatrix3fv(imageShader.positionMatrix,false,gameTexturePositionMatrix);
     gl.uniformMatrix3fv(imageShader.textureMatrix,false,gameTextureIdentityMatrix);
+    gl.uniform4fv(imageShader.blendUniform,gameTextureBlend);
     gl.drawArrays(gl.TRIANGLES,0,6);
     ctx.restore();
+}
+
+/**
+ * Draws a line from one point to another in one color.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} x2 
+ * @param {number} y2 
+ * @param {number} r Red component of the line's color
+ * @param {number} g Green component of the line's color
+ * @param {number} b Blue component of the line's color
+ * @param {numa} a Alpha channel of the line's color
+ */
+function drawLine(x,y,x2,y2,r,g,b,a) {
+    const positions = [x,y, x2,y2];
+
+    // Use right shader, update our bound buffer to the right type
+    primitiveShader.use();
+    gl.bindBuffer(gl.ARRAY_BUFFER,primitiveShader.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
+    gl.vertexAttribPointer(primitiveShader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Set the color and draw
+    gl.uniform4f(primitiveShader.colorUniform,r,g,b,a);
+    gl.drawArrays(gl.LINES,0,2);
+}
+
+function drawRectangle(x,y,x2,y2,r,g,b,a) {
+    const positions = [x, y2, x, y, x2, y, 
+                       x2, y, x2, y2, x, y2 ];
+
+    // Use right shader, update bound buffer to the right type
+    primitiveShader.use();
+    gl.bindBuffer(gl.ARRAY_BUFFER,primitiveShader.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
+    gl.vertexAttribPointer(primitiveShader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Set the color and draw
+    gl.uniform4f(primitiveShader.colorUniform,r,g,b,a);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+}
+
+function drawCircle(x,y,radius,segments,r,g,b,a) {
+    const positions = [ x, y ];
+
+    // Push each successive segment onto position attribute
+    let theta = 0;
+    for (let i = 0; i <= segments; i++) {
+        positions.push(x+(radius*Math.cos(theta)));
+        positions.push(y+(radius*Math.sin(theta)));
+        theta += Math.PI*2/segments;
+    }
+
+    // Use right shader, update bound buffer to the right type
+    primitiveShader.use();
+    gl.bindBuffer(gl.ARRAY_BUFFER,primitiveShader.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
+    gl.vertexAttribPointer(primitiveShader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Set the color and draw
+    gl.uniform4f(primitiveShader.colorUniform,r,g,b,a);
+    gl.drawArrays(gl.TRIANGLE_FAN,0,segments+2);
+}
+
+function drawPrimitive(mode,positions,r,g,b,a) {
+    // Use right shader, update bound buffer to the right type
+    primitiveShader.use();
+    gl.bindBuffer(gl.ARRAY_BUFFER,primitiveShader.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
+    gl.vertexAttribPointer(primitiveShader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Set the color and draw
+    gl.uniform4f(primitiveShader.colorUniform,r,g,b,a);
+    gl.drawArrays(mode,0,positions.length/2);
 }
 
 export { 
@@ -91,5 +175,10 @@ export {
     ctx,
     loadTexture,
     beginRender,
-    drawGameTexture
+    drawGameTexture,
+    gameTextureBlend,
+    drawLine,
+    drawRectangle,
+    drawCircle,
+    drawPrimitive,
 };

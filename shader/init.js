@@ -1,5 +1,8 @@
-import ImageSource from './image.js';
+import ImageSource from './source/image.js';
+import PrimitiveSource from './source/primitive.js';
+
 import { gl } from './document.js';
+import Matrix from '../util/matrix.js';
 
 // Shader class
 /** @type {Shader} */
@@ -58,15 +61,16 @@ function makeImageShader() {
     shader.textureAttribute = gl.getAttribLocation(shader.program,'a_texcoord');
     shader.positionMatrix = gl.getUniformLocation(shader.program,'u_positionMatrix');
     shader.textureMatrix = gl.getUniformLocation(shader.program,'u_texcoordMatrix');
+    shader.blendUniform = gl.getUniformLocation(shader.program,'u_blend');
 
     // Put the same buffer data into each attribute
     // This will not change, since each image is drawn the same way.
-    const buffer = gl.createBuffer();
+    shader.buffer = gl.createBuffer();
     const positionOrder = new Float32Array([
         0, 0,  0, 1,  1, 1,
         1, 1,  1, 0,  0, 0,
     ]);
-    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER,shader.buffer);
     gl.bufferData(gl.ARRAY_BUFFER,positionOrder,gl.STATIC_DRAW);
 
     gl.enableVertexAttribArray(shader.positionAttribute);
@@ -78,11 +82,33 @@ function makeImageShader() {
     return shader;
 }
 
+function makePrimitiveShader() {
+    const shader = new Shader(PrimitiveSource.vertex,PrimitiveSource.fragment);
+    shader.positionAttribute = gl.getAttribLocation(shader.program,'a_position');
+    shader.positionMatrix = gl.getUniformLocation(shader.program,'u_positionMatrix');
+    shader.colorUniform = gl.getUniformLocation(shader.program,'u_color');
+
+    shader.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,shader.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0, 0.5,0.5]),gl.DYNAMIC_DRAW);
+
+    gl.enableVertexAttribArray(shader.positionAttribute);
+    gl.vertexAttribPointer(shader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    // Set the position uniform once here. All the position does it change to clipspace
+    shader.use();
+    gl.uniformMatrix3fv(shader.positionMatrix,false,Matrix.projection);
+
+    return shader;
+}
+
 // More shader make functions here
 
+const primitiveShader = makePrimitiveShader();
 const imageShader = makeImageShader();
 export { 
     Shader, 
     currentShader, 
-    imageShader
+    imageShader,
+    primitiveShader,
 };

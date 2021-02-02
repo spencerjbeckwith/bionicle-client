@@ -17,9 +17,11 @@ fragment:`
 precision mediump float;
 
 uniform sampler2D u_image;
+uniform vec4 u_blend;
+
 varying vec2 v_texcoord;
 
 void main() {
-    gl_FragColor = texture2D(u_image,v_texcoord);
+    gl_FragColor = texture2D(u_image,v_texcoord)*u_blend;
 }`
 }
