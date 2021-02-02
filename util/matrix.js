@@ -101,3 +101,5 @@ const Matrix = {
 }
 
 export default Matrix;
+
+window.Matrix = Matrix;

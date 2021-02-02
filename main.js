@@ -54,36 +54,6 @@ let currentShader = null;
 class Shader {
     constructor(vertexSource,fragmentSource) {
         this.program = this.createShaderProgram(vertexSource,fragmentSource);
-
-        this.positionAttribute = gl.getAttribLocation(this.program,'a_position');
-        this.textureAttribute = gl.getAttribLocation(this.program,'a_texcoord');
-
-        this.positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,this.positionBuffer);
-        const positions = [
-            0, 0,  0, 1,  1, 1,
-            1, 1,  1, 0,  0, 0,
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions),gl.STATIC_DRAW);
-    
-        gl.enableVertexAttribArray(this.positionAttribute);
-        gl.vertexAttribPointer(this.positionAttribute,2,gl.FLOAT,false,0,0);
-    
-        // // //
-    
-        this.textureBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,this.textureBuffer);
-        const texcoords = [
-            0, 0,  0, 1,  1, 1,
-            1, 1,  1, 0,  0, 0, 
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(texcoords),gl.STATIC_DRAW);
-    
-        gl.enableVertexAttribArray(this.textureAttribute);
-        gl.vertexAttribPointer(this.textureAttribute,2,gl.FLOAT,false,0,0);
-
-        this.positionMatrix = gl.getUniformLocation(this.program,'u_positionMatrix');
-        this.textureMatrix = gl.getUniformLocation(this.program,'u_texcoordMatrix');
     }
 
     use() {
@@ -128,6 +98,33 @@ class Shader {
     }
 }
 
+function makeImageShader() {
+    const shader = new Shader(ImageSource.vertex,ImageSource.fragment);
+    // Get attributes and uniforms
+    shader.positionAttribute = gl.getAttribLocation(shader.program,'a_position');
+    shader.textureAttribute = gl.getAttribLocation(shader.program,'a_texcoord');
+    shader.positionMatrix = gl.getUniformLocation(shader.program,'u_positionMatrix');
+    shader.textureMatrix = gl.getUniformLocation(shader.program,'u_texcoordMatrix');
+
+    // Put the same buffer data into each attribute
+    // This will not change, since each image is drawn the same way.
+    const buffer = gl.createBuffer();
+    const positionOrder = new Float32Array([
+        0, 0,  0, 1,  1, 1,
+        1, 1,  1, 0,  0, 0,
+    ]);
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,positionOrder,gl.STATIC_DRAW);
+
+    gl.enableVertexAttribArray(shader.positionAttribute);
+    gl.vertexAttribPointer(shader.positionAttribute,2,gl.FLOAT,false,0,0);
+
+    gl.enableVertexAttribArray(shader.textureAttribute);
+    gl.vertexAttribPointer(shader.textureAttribute,2,gl.FLOAT,false,0,0);
+
+    return shader;
+}
+
 async function loadTexture(url) {
     return new Promise(function(resolve,reject) {
         const texture = gl.createTexture();
@@ -152,45 +149,76 @@ async function loadTexture(url) {
 
 // Main loop
 function main() {
-
-    // Run
-
-    gl.viewport(0,0,canvas.width,canvas.height);
-
+    // Set rendering on framebuffer and with correct texture
+    gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer);
+    gl.viewport(0,0,config.width,config.height);
     gl.clearColor(0.8,0,0.5,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    ctx.clearRect(0,0,config.width,config.height);
+    ctx.save();
+    gl.bindTexture(gl.TEXTURE_2D,texture);
 
+    // // //
+    
     //  Set position matrix
     let mat = Matrix.projection;
-    mat = Matrix.translation(mat,100,100);
-    mat = Matrix.scaling(mat,100,100);
+    mat = Matrix.translation(mat,0,0);
+    mat = Matrix.scaling(mat,400,240);
 
     gl.uniformMatrix3fv(ImageShader.positionMatrix,false,mat);
 
     // Set texture matrix
     mat = Matrix.identity;
-    mat = Matrix.translation(mat,1/5,1/5);
-    mat = Matrix.scaling(mat,40/100,40/100);
+    //mat = Matrix.translation(mat,1/5,1/5);
+    //mat = Matrix.scaling(mat,40/100,40/100);
 
     gl.uniformMatrix3fv(ImageShader.textureMatrix,false,mat);
 
     gl.drawArrays(gl.TRIANGLES,0,6);
 
+    // // //
+
+    drawGameTexture();
+    ctx.restore();
     requestAnimationFrame(main);
 }
 
-function drawTexturePart() {
-    // Steps to drawing...
+// Set up drawing
+gl.clearColor(0,0,0,1);
+gl.clear(gl.COLOR_BUFFER_BIT);
+gl.disable(gl.DEPTH_TEST);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 
-    /*
-    So if I want to make my own drawingbuffer...
-    When you call a draw command... you know, i dont know if it'll be practical to mesh multiple sprite calls into one.
-    Because hwne you call the shader, yo ucan only set the matrices once. Unless you're drawing the same sprite multiple times...
+// Set up game texture
+const gameTexture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D,gameTexture);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,config.width,config.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+let gameTexturePositionMatrix = [2, 0, 0, 0, -2, 0, -1, 1, 1];
+let gameTextureIdentityMatrix = [1, 0, 0, 0, -1, 0, 0, 1, 1];
 
-    The other thing I could do, is not use matrices, and just multiply the data and put it straight into the gl buffers for position and texcoords
+// Set up our framebuffer
+const frameBuffer = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer);
+gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,gameTexture,0);
+
+function drawGameTexture() {
+    // Switch to right framebuffer and texture
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    gl.viewport(0,0,canvas.width,canvas.height);
+    gl.clearColor(0,0,0,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindTexture(gl.TEXTURE_2D,gameTexture);
     
-    */
-    // call draw arrays
+    // Use the right shader and set our precalculated matrices
+    ImageShader.use();
+    gl.uniformMatrix3fv(ImageShader.positionMatrix,false,gameTexturePositionMatrix);
+    gl.uniformMatrix3fv(ImageShader.textureMatrix,false,gameTextureIdentityMatrix);
+    gl.drawArrays(gl.TRIANGLES,0,6);
 }
 
 // Launch
@@ -201,7 +229,7 @@ let ImageShader = null;
     // Loading here
     texture = await loadTexture('tex.png');
 
-    ImageShader = new Shader(ImageSource.vertex,ImageSource.fragment);
+    ImageShader = makeImageShader();
     ImageShader.use();
 
     main();
