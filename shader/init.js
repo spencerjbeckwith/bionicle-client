@@ -1,8 +1,10 @@
 import ImageSource from './source/image.js';
 import PrimitiveSource from './source/primitive.js';
+import SwapSource from './source/swap.js';
 
 import { gl } from './document.js';
 import Matrix from '../util/matrix.js';
+import swap from './source/swap.js';
 
 // Shader class
 /** @type {Shader} */
@@ -54,8 +56,8 @@ class Shader {
     }
 }
 
-function makeImageShader() {
-    const shader = new Shader(ImageSource.vertex,ImageSource.fragment);
+function makeImageShader(extensionVertexSrc = ImageSource.vertex,extensionFragSrc = ImageSource.fragment) {
+    const shader = new Shader(extensionVertexSrc,extensionFragSrc);
     // Get attributes and uniforms
     shader.positionAttribute = gl.getAttribLocation(shader.program,'a_position');
     shader.textureAttribute = gl.getAttribLocation(shader.program,'a_texcoord');
@@ -115,13 +117,138 @@ function makePrimitiveShader() {
     return shader;
 }
 
+function makeSwapShader() {
+    // Reconfigure these options if you want to change palettes at any point
+    const paletteCount = 7;
+    // Current palettes:
+    //  0 - default colors
+    //  1 - Tahu
+    //  2 - Pohatu
+    //  3 - Onua
+    //  4 - Kopaka
+    //  5 - Gali
+    //  6 - Lewa
+    const colorCount = 9;
+    // Current colors per palette (IN THIS ORDER):
+    //  0 - light primary
+    //  1 - primary
+    //  2 - dark primary
+    //  3 - light eye
+    //  4 - eye color
+    //  5 - dark eye
+    //  6 - light secondary
+    //  7 - secondary
+    //  8 - dark secondary
+
+    const paletteLength = paletteCount*colorCount;
+    const colors = new Array(paletteLength);
+
+    let i = 0;
+    let factor = 0.2;
+    function feed(hexString) {
+        // Feeds in one color as an array from a hex string
+        const r = parseInt(hexString.slice(0,2),16) / 255;
+        const g = parseInt(hexString.slice(2,4),16) / 255;
+        const b = parseInt(hexString.slice(4,6),16) / 255;
+        colors[i] = [r,g,b];
+        i++;
+    }
+    function feed3(hexString) {
+        // Feeds three colors in based on one: first color is lighter, middle is the argument, third is darker
+        let r = parseInt(hexString.slice(0,2),16) / 255;
+        let g = parseInt(hexString.slice(2,4),16) / 255;
+        let b = parseInt(hexString.slice(4,6),16) / 255;
+        colors[i] = [Math.min(1,r+factor), Math.min(1,g+factor), Math.min(1,b+factor)];
+        colors[i+1] = [r, g, b];
+        colors[i+2] = [Math.max(0,r-factor), Math.max(0,g-factor), Math.max(0,b-factor)];
+        i += 3;
+    }
+    let startTime = Date.now();
+
+    // SET COLORS HERE
+    // default palette: these MUST match colors in sprites you swap in the atlas!
+    feed('ffffff');
+    feed('ababab');
+    feed('545454');
+    feed('ddf097');
+    feed('a4bd46');
+    feed('61702a');
+    feed('010101'); //placeholder
+    feed('010102');
+    feed('010103');
+    
+    // Tahu
+    feed3('c4281b');
+    feed3('c470a0');
+    feed3('da8540');
+
+    // Pohatu
+    feed3('675237');
+    feed3('da8540');
+    feed3('d7c599');
+
+    // Onua
+    feed3('1b2a34');
+    feed3('287f46');
+    feed3('6d6e6c');
+
+    // Kopaka
+    feed3('d0d1d0');
+    feed3('6e99c9');
+    feed3('a1a5a2');
+
+    // Gali
+    feed3('0d69ab');
+    feed3('f5cd2f');
+    feed3('6e99c9');
+
+    // Lewa
+    feed3('287f46');
+    feed3('c7d23c');
+    feed3('a4bd46');
+
+    let injection = '';
+    for (let i = 1; i < paletteCount; i++) {
+        // Inject a conditional for each possible palette
+        // We have to do this because we can't use a uniform in array index in glsl, yikes.
+        injection += `if (u_paletteIndex == ${i}) {
+            newCol = palette[i+(${i}*${colorCount})];
+        }\n`;
+    }
+
+    const shader = makeImageShader(SwapSource.vertex,SwapSource.fragment(paletteLength,colorCount,injection));
+    shader.use();
+
+    // Load the uniform
+    for (let i = 0; i < paletteLength; i++) {
+        // This has to happen for every color... dozens of times. Because there's no way to set a full glsl array
+        // Each array index has to be set individually. yikes.
+        // Grab the location for this index of our palette
+        const location = gl.getUniformLocation(shader.program,`palette[${i}]`);
+
+        // Load it with our four channels for each color
+        gl.uniform3fv(location,colors[i]);
+    }
+
+    shader.paletteUniform = gl.getUniformLocation(shader.program,`u_paletteIndex`);
+
+    // To do later: pre-compile the full color list when you're deploying
+    // Also to-do later: figure out a better way to palette swap.
+    //  Because this is tedious and far from optimal, but hey it works
+    console.log(`Compiled, calculated and placed ${paletteLength} colors in shader uniform in ${Date.now()-startTime}ms`);
+
+    return shader;
+}
+
 // More shader make functions here
 
 const primitiveShader = makePrimitiveShader();
+const swapShader = makeSwapShader();
 const imageShader = makeImageShader();
 export { 
     Shader, 
     currentShader, 
     imageShader,
     primitiveShader,
+    swapShader,
 };
