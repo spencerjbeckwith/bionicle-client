@@ -4,7 +4,6 @@ import config from './config.js';
 
 import { imageShader, swapShader } from './shader/init.js';
 import { gl } from './shader/gl.js';
-import swap from './shader/source/swap.js';
 
 class Sprite {
     constructor(name,width,height,images) {

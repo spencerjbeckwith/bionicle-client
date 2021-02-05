@@ -4,7 +4,6 @@ import SwapSource from './source/swap.js';
 
 import { gl } from './document.js';
 import Matrix from '../util/matrix.js';
-import swap from './source/swap.js';
 
 // Shader class
 /** @type {Shader} */
@@ -56,8 +55,8 @@ class Shader {
     }
 }
 
-function makeImageShader(extensionVertexSrc = ImageSource.vertex,extensionFragSrc = ImageSource.fragment) {
-    const shader = new Shader(extensionVertexSrc,extensionFragSrc);
+function makeImageShader(src) {
+    const shader = new Shader(src.vertex,src.fragment);
     // Get attributes and uniforms
     shader.positionAttribute = gl.getAttribLocation(shader.program,'a_position');
     shader.textureAttribute = gl.getAttribLocation(shader.program,'a_texcoord');
@@ -120,25 +119,34 @@ function makePrimitiveShader() {
 function makeSwapShader() {
     // Reconfigure these options if you want to change palettes at any point
     const paletteCount = 7;
-    // Current palettes:
-    //  0 - default colors
-    //  1 - Tahu
-    //  2 - Pohatu
-    //  3 - Onua
-    //  4 - Kopaka
-    //  5 - Gali
-    //  6 - Lewa
     const colorCount = 9;
-    // Current colors per palette (IN THIS ORDER):
-    //  0 - light primary
-    //  1 - primary
-    //  2 - dark primary
-    //  3 - light eye
-    //  4 - eye color
-    //  5 - dark eye
-    //  6 - light secondary
-    //  7 - secondary
-    //  8 - dark secondary
+    /* Current palettes:
+      0 - default colors
+      1 - Tahu
+      2 - Pohatu
+      3 - Onua
+      4 - Kopaka
+      5 - Gali
+      6 - Lewa
+
+      ... Maybe one more Matoran palette?
+      This way, every Toa/Matoran/Rahi can have any of four palettes and any of 12 masks. Thats 48 possible Matoran per Koro
+
+      In the long run, life would be MUCH better if you make the shader so you provide it the colors to swap.
+      So you provide the shader three base colors - if set, the shader will change each color to those colors - primary, eyes, secondary
+      Palette types can then be built on top of that
+    
+    Current colors per palette (IN THIS ORDER):
+      0 - light primary
+      1 - primary
+      2 - dark primary
+      3 - light eye
+      4 - eye color
+      5 - dark eye
+      6 - light secondary
+      7 - secondary
+      8 - dark secondary
+    */
 
     const paletteLength = paletteCount*colorCount;
     const colors = new Array(paletteLength);
@@ -216,7 +224,11 @@ function makeSwapShader() {
         }\n`;
     }
 
-    const shader = makeImageShader(SwapSource.vertex,SwapSource.fragment(paletteLength,colorCount,injection));
+    // babel wouldn't let me just throw vertex/fragment in as arguments
+    // so instead let's overwrite fragment function with the proper fragment source
+    const temp = SwapSource.fragment(paletteLength,colorCount,injection);
+    SwapSource.fragment = temp;
+    const shader = makeImageShader(SwapSource);
     shader.use();
 
     // Load the uniform
@@ -244,11 +256,11 @@ function makeSwapShader() {
 
 const primitiveShader = makePrimitiveShader();
 const swapShader = makeSwapShader();
-const imageShader = makeImageShader();
+const imageShader = makeImageShader(ImageSource);
 export { 
     Shader, 
     currentShader, 
     imageShader,
     primitiveShader,
     swapShader,
-};
+}

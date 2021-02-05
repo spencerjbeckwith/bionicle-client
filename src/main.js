@@ -1,7 +1,7 @@
 
-import { gl, loadTexture, beginRender, drawGameTexture, drawLine, drawRectangle, drawCircle, drawPrimitive} from './shader/gl.js';
+import { loadTexture, beginRender, drawGameTexture, } from './shader/gl.js';
 
-import { drawSprite, drawSpriteSwap, spr } from './sprite.js';
+import { drawSpriteSwap, spr } from './sprite.js';
 
 // Main loop
 function main() {
@@ -29,7 +29,7 @@ let texture = null;
 (async () => {
 
     // Loading resources here
-    texture = await loadTexture('atlas.png');
+    texture = await loadTexture('../asset/atlas.png');
 
     main();
 })();
