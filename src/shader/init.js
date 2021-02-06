@@ -4,6 +4,7 @@ import SwapSource from './source/swap.js';
 
 import { gl } from './document.js';
 import Matrix from '../util/matrix.js';
+import { replacePalette } from './color.js';
 
 // Shader class
 /** @type {Shader} */
@@ -117,137 +118,50 @@ function makePrimitiveShader() {
 }
 
 function makeSwapShader() {
-    // Reconfigure these options if you want to change palettes at any point
-    const paletteCount = 7;
-    const colorCount = 9;
-    /* Current palettes:
-      0 - default colors
-      1 - Tahu
-      2 - Pohatu
-      3 - Onua
-      4 - Kopaka
-      5 - Gali
-      6 - Lewa
-
-      ... Maybe one more Matoran palette?
-      This way, every Toa/Matoran/Rahi can have any of four palettes and any of 12 masks. Thats 48 possible Matoran per Koro
-
-      In the long run, life would be MUCH better if you make the shader so you provide it the colors to swap.
-      So you provide the shader three base colors - if set, the shader will change each color to those colors - primary, eyes, secondary
-      Palette types can then be built on top of that
-    
-    Current colors per palette (IN THIS ORDER):
-      0 - light primary
-      1 - primary
-      2 - dark primary
-      3 - light eye
-      4 - eye color
-      5 - dark eye
-      6 - light secondary
-      7 - secondary
-      8 - dark secondary
-    */
-
-    const paletteLength = paletteCount*colorCount;
-    const colors = new Array(paletteLength);
-
-    let i = 0;
-    let factor = 0.2;
-    function feed(hexString) {
-        // Feeds in one color as an array from a hex string
-        const r = parseInt(hexString.slice(0,2),16) / 255;
-        const g = parseInt(hexString.slice(2,4),16) / 255;
-        const b = parseInt(hexString.slice(4,6),16) / 255;
-        colors[i] = [r,g,b];
-        i++;
-    }
-    function feed3(hexString) {
-        // Feeds three colors in based on one: first color is lighter, middle is the argument, third is darker
-        let r = parseInt(hexString.slice(0,2),16) / 255;
-        let g = parseInt(hexString.slice(2,4),16) / 255;
-        let b = parseInt(hexString.slice(4,6),16) / 255;
-        colors[i] = [Math.min(1,r+factor), Math.min(1,g+factor), Math.min(1,b+factor)];
-        colors[i+1] = [r, g, b];
-        colors[i+2] = [Math.max(0,r-factor), Math.max(0,g-factor), Math.max(0,b-factor)];
-        i += 3;
-    }
-    let startTime = Date.now();
-
-    // SET COLORS HERE
-    // default palette: these MUST match colors in sprites you swap in the atlas!
-    feed('ffffff');
-    feed('ababab');
-    feed('545454');
-    feed('ddf097');
-    feed('a4bd46');
-    feed('61702a');
-    feed('010101'); //placeholder
-    feed('010102');
-    feed('010103');
-    
-    // Tahu
-    feed3('c4281b');
-    feed3('c470a0');
-    feed3('da8540');
-
-    // Pohatu
-    feed3('675237');
-    feed3('da8540');
-    feed3('d7c599');
-
-    // Onua
-    feed3('1b2a34');
-    feed3('287f46');
-    feed3('6d6e6c');
-
-    // Kopaka
-    feed3('d0d1d0');
-    feed3('6e99c9');
-    feed3('a1a5a2');
-
-    // Gali
-    feed3('0d69ab');
-    feed3('f5cd2f');
-    feed3('6e99c9');
-
-    // Lewa
-    feed3('287f46');
-    feed3('c7d23c');
-    feed3('a4bd46');
-
-    let injection = '';
-    for (let i = 1; i < paletteCount; i++) {
-        // Inject a conditional for each possible palette
-        // We have to do this because we can't use a uniform in array index in glsl, yikes.
-        injection += `if (u_paletteIndex == ${i}) {
-            newCol = palette[i+(${i}*${colorCount})];
-        }\n`;
-    }
-
-    // babel wouldn't let me just throw vertex/fragment in as arguments
-    // so instead let's overwrite fragment function with the proper fragment source
-    const temp = SwapSource.fragment(paletteLength,colorCount,injection);
-    SwapSource.fragment = temp;
     const shader = makeImageShader(SwapSource);
     shader.use();
+    // This is a bit nasty... but not as nasty as it was before
 
-    // Load the uniform
-    for (let i = 0; i < paletteLength; i++) {
-        // This has to happen for every color... dozens of times. Because there's no way to set a full glsl array
-        // Each array index has to be set individually. yikes.
-        // Grab the location for this index of our palette
-        const location = gl.getUniformLocation(shader.program,`palette[${i}]`);
+    // Set the initial nine palette replace uniform colors
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedPrimary'),replacePalette.primary[0]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedPrimaryLight'),replacePalette.primary[1]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedPrimaryDark'),replacePalette.primary[2]);
 
-        // Load it with our four channels for each color
-        gl.uniform3fv(location,colors[i]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedSecondary'),replacePalette.secondary[0]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedSecondaryLight'),replacePalette.secondary[1]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedSecondaryDark'),replacePalette.secondary[2]);
+
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedEye'),replacePalette.eye[0]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedEyeLight'),replacePalette.eye[1]);
+    gl.uniform3fv(gl.getUniformLocation(shader.program,'u_replacedEyeDark'),replacePalette.eye[2]);
+
+    // Store swap color uniforms
+    shader.uniformPrimary = gl.getUniformLocation(shader.program,'u_primary');
+    shader.uniformPrimaryLight = gl.getUniformLocation(shader.program,'u_primaryLight');
+    shader.uniformPrimaryDark = gl.getUniformLocation(shader.program,'u_primaryDark');
+
+    shader.uniformSecondary = gl.getUniformLocation(shader.program,'u_secondary');
+    shader.uniformSecondaryLight = gl.getUniformLocation(shader.program,'u_secondaryLight');
+    shader.uniformSecondaryDark = gl.getUniformLocation(shader.program,'u_secondaryDark');
+
+    shader.uniformEye = gl.getUniformLocation(shader.program,'u_eye');
+    shader.uniformEyeLight = gl.getUniformLocation(shader.program,'u_eyeLight');
+    shader.uniformEyeDark = gl.getUniformLocation(shader.program,'u_eyeDark');
+
+    // Create our palette setting function on the shader
+    shader.setPalette = function(palette) {
+        gl.uniform3fv(shader.uniformPrimary,palette.primary[0]);
+        gl.uniform3fv(shader.uniformPrimaryLight,palette.primary[1]);
+        gl.uniform3fv(shader.uniformPrimaryDark,palette.primary[2]);
+
+        gl.uniform3fv(shader.uniformSecondary,palette.secondary[0]);
+        gl.uniform3fv(shader.uniformSecondaryLight,palette.secondary[1]);
+        gl.uniform3fv(shader.uniformSecondaryDark,palette.secondary[2]);
+        
+        gl.uniform3fv(shader.uniformEye,palette.eye[0]);
+        gl.uniform3fv(shader.uniformEyeLight,palette.eye[1]);
+        gl.uniform3fv(shader.uniformEyeDark,palette.eye[2]);
     }
-
-    shader.paletteUniform = gl.getUniformLocation(shader.program,`u_paletteIndex`);
-
-    // To do later: pre-compile the full color list when you're deploying
-    // Also to-do later: figure out a better way to palette swap.
-    //  Because this is tedious and far from optimal, but hey it works
-    console.log(`Compiled, calculated and placed ${paletteLength} colors in shader uniform in ${Date.now()-startTime}ms`);
 
     return shader;
 }

@@ -14,14 +14,32 @@ void main() {
     v_texcoord = (u_texcoordMatrix*vec3(a_texcoord,1.0)).xy;
 }`,
 
-fragment: function(palLength,colorCount,injection) {return`
+fragment: `
 precision mediump float;
-
-uniform sampler2D u_image;
+uniform sampler2D u_image;                                  
 uniform vec4 u_blend;
-uniform vec3 palette[${palLength}];
 
-uniform int u_paletteIndex;
+// Colors to swap
+uniform vec3 u_replacedPrimary;
+uniform vec3 u_replacedPrimaryLight;
+uniform vec3 u_replacedPrimaryDark;
+uniform vec3 u_replacedSecondary;
+uniform vec3 u_replacedSecondaryLight;
+uniform vec3 u_replacedSecondaryDark;
+uniform vec3 u_replacedEye;
+uniform vec3 u_replacedEyeLight;
+uniform vec3 u_replacedEyeDark;
+
+// What to swap to
+uniform vec3 u_primary;
+uniform vec3 u_primaryLight;
+uniform vec3 u_primaryDark;
+uniform vec3 u_secondary;
+uniform vec3 u_secondaryLight;
+uniform vec3 u_secondaryDark;
+uniform vec3 u_eye;
+uniform vec3 u_eyeLight;
+uniform vec3 u_eyeDark;
 
 varying vec2 v_texcoord;
 
@@ -29,22 +47,29 @@ void main() {
     // Get current frag color from texture
     vec4 color = texture2D(u_image,v_texcoord);
 
-    // If color equals a value in our palette index...
-    for (int i = 0; i < ${colorCount}; i++) {
-        if (color.rgb == palette[i].rgb) {
-            // Set color to be equal to palette color
-            vec3 newCol = color.rgb;
-
-            // ew
-            // A conditional is injected for each palette, because array indices must be constant in glsl
-            ${injection}
-
-            color = vec4(newCol,color.a); // Preserve old alpha
-            break;
-        }
+    // If color equals a value to swap...
+    if (color.rgb == u_replacedPrimary) {
+        // Set it to the new replacement
+        color = vec4(u_primary.rgb,color.a);
+    } else if (color.rgb == u_replacedPrimaryLight) {
+        color = vec4(u_primaryLight.rgb,color.a);
+    } else if (color.rgb == u_replacedPrimaryDark) {
+        color = vec4(u_primaryDark.rgb,color.a);
+    } else if (color.rgb == u_replacedSecondary) {
+        color = vec4(u_secondary.rgb,color.a);
+    } else if (color.rgb == u_replacedSecondaryLight) {
+        color = vec4(u_secondaryLight.rgb,color.a);
+    } else if (color.rgb == u_replacedSecondaryDark) {
+        color = vec4(u_secondaryDark.rgb,color.a);
+    } else if (color.rgb == u_replacedEye) {
+        color = vec4(u_eye.rgb,color.a);
+    } else if (color.rgb == u_replacedEyeLight) {
+        color = vec4(u_eyeLight.rgb,color.a);
+    } else if (color.rgb == u_replacedEyeDark) {
+        color = vec4(u_eyeDark.rgb,color.a);
     }
 
-    // Blend it and set
+    // Blend and set
     gl_FragColor = color*u_blend;
 }`
-}}
+}

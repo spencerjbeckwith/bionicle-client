@@ -8,7 +8,8 @@
     "rollup": "rollup src/main.js --format iife --file lib/bionicle.js",
     "babel": "babel lib/bionicle.js --minified --source-type module --out-file lib/bionicle.js --source-maps",
     "minify": "minify --sourceType module --comments false --mangle --simplify lib/bionicle.js --out-file lib/bionicle.min.js",
-    "build": "npm run lint && mocha test && npm run rollup && npm run babel && npm run minify"
+    "build": "npm run atlas && npm run lint && mocha test && npm run rollup && npm run babel && npm run minify",
+    "atlas": "node script/atlas.js"
   },
   "keywords": [
     "bionicle",
@@ -18,7 +19,9 @@
   "license": "",
   "babel": {
     "presets": [
-      ["minify"]
+      [
+        "minify"
+      ]
     ],
     "plugins": []
   },
@@ -39,7 +42,9 @@
     "@babel/core": "^7.12.13",
     "babel-minify": "^0.5.1",
     "eslint": "^7.19.0",
+    "jimp": "^0.16.1",
     "mocha": "^8.2.1",
+    "readline-sync": "^1.4.10",
     "rollup": "^2.38.4"
   }
 }

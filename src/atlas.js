@@ -1,8 +1,8 @@
 export default [
   {
-    "name": "head",
+    "name": "kanohi",
     "width": 40,
-    "height": 40,
+    "height": 48,
     "images": [
       {
         "x": 0,
@@ -19,14 +19,7 @@ export default [
       {
         "x": 144,
         "y": 0
-      }
-    ]
-  },
-  {
-    "name": "kanohi",
-    "width": 40,
-    "height": 40,
-    "images": [
+      },
       {
         "x": 192,
         "y": 0
@@ -49,6 +42,60 @@ export default [
       },
       {
         "x": 432,
+        "y": 0
+      },
+      {
+        "x": 480,
+        "y": 0
+      },
+      {
+        "x": 528,
+        "y": 0
+      }
+    ]
+  },
+  {
+    "name": "head",
+    "width": 40,
+    "height": 40,
+    "images": [
+      {
+        "x": 576,
+        "y": 0
+      },
+      {
+        "x": 624,
+        "y": 0
+      },
+      {
+        "x": 672,
+        "y": 0
+      },
+      {
+        "x": 720,
+        "y": 0
+      }
+    ]
+  },
+  {
+    "name": "headSecondary",
+    "width": 40,
+    "height": 40,
+    "images": [
+      {
+        "x": 768,
+        "y": 0
+      },
+      {
+        "x": 816,
+        "y": 0
+      },
+      {
+        "x": 864,
+        "y": 0
+      },
+      {
+        "x": 912,
         "y": 0
       }
     ]

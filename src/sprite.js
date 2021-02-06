@@ -93,14 +93,14 @@ function drawSprite(sprite,image,x,y,a = 1,r = 1,g = 1,b = 1,transformFn = null)
  * @param {number} image Image index of the sprite to draw
  * @param {number} x Absolute x on canvas
  * @param {number} y Absolute y on canvas
- * @param {number} palette Palette index to recolor the sprite to
+ * @param {Palette} palette Palette to recolor the sprite to
  * @param {number} a Alpha channel
  * @param {number} [r] Red channel blend
  * @param {number} [g] Green channel blend
  * @param {number} [b] Blue channel blend
  * @param {transformFnCallback} [transformFn] Callback to apply transformations to the position matrix
  */
-function drawSpriteSwap(sprite,image,x,y,palette = 0,a = 1,r = 1,g = 1,b = 1,transformFn = null) {
+function drawSpriteSwap(sprite,image,x,y,palette,a = 1,r = 1,g = 1,b = 1,transformFn = null) {
     swapShader.use();
     image = limitImage(sprite,image);
 
@@ -123,7 +123,7 @@ function drawSpriteSwap(sprite,image,x,y,palette = 0,a = 1,r = 1,g = 1,b = 1,tra
     gl.uniform4f(swapShader.blendUniform,r,g,b,a);
 
     // Set palette index
-    gl.uniform1i(swapShader.paletteUniform,palette);
+    swapShader.setPalette(palette);
 
     gl.drawArrays(gl.TRIANGLES,0,6);
 }
