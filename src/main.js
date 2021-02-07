@@ -1,15 +1,19 @@
 
 import { loadTexture, beginRender, drawGameTexture, } from './shader/gl.js';
 
-import { drawSpriteSwap, spr } from './sprite.js';
+import { drawSprite, drawSpriteSwap, spr } from './sprite.js';
 
 import { palettes } from './shader/color.js';
+
+import { ctx } from './shader/gl.js';
+import config from './config.js';
 
 // Main loop
 function main() {
     // Set rendering on framebuffer and with correct texture
     beginRender(texture);
 
+    /*
     function drawMasks(bx,by,startMask,pal,head) {
         if (!head) {head = spr.head;}
         for (let x = 0; x < 6; x++) {
@@ -31,10 +35,21 @@ function main() {
     drawMasks(0,200,0,palettes.lewa);
     drawMasks(200,200,6,palettes.matau,spr.headSecondary);
 
-    // To do next:
-    // - migrate to a better project environment
-    // - draw some sweet HUD elements built of lego technic parts
-    //  - while you're at it, make your own atlas generation script.
+    */
+    drawSpriteSwap(spr.statusbar,0,0,0,palettes.tahu);
+    drawSpriteSwap(spr.statusbar,0,0,64,palettes.pohatu);
+    drawSpriteSwap(spr.statusbar,0,0,128,palettes.onua);
+    drawSpriteSwap(spr.statusbar,0,226,0,palettes.kopaka);
+    drawSpriteSwap(spr.statusbar,0,226,64,palettes.gali);
+    drawSpriteSwap(spr.statusbar,0,226,128,palettes.lewa);
+
+    ctx.fillStyle = 'white';
+    ctx.font = config.font;
+    ctx.fillText('Hello world!',16,16);
+    ctx.font = '10px metru';
+    ctx.fillText('Hello world!',16,80);
+    ctx.font = '10px voya';
+    ctx.fillText('Hello world!',16,144)
 
     drawGameTexture();
     requestAnimationFrame(main);

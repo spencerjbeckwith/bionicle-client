@@ -4,8 +4,9 @@ Bionicle MMO set on Mata-Nui where you play as a Toa, collect your Kanohi, and f
 **BIONICLE and Lego are a trademarks of the Lego Group. This project is not endorsed by them in any way. Additionally, this project is completely free and always will be. All code and assets I've created are free to use.**
 
 # To-Do:
-- Draw noble masks
 - Draw HUD elements
-- Color setting per uniform per color in shader, rather than all pre-defined
-    - Color and palette manager - so it'll only take one draw call to set all palette uniforms
+- Begin stuff
 - everything lol
+
+# Credits
+- Matoran Font by MtMNC [github](https://github.com/MtMNC/Bionicle-Fonts)
