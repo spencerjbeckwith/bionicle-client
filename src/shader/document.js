@@ -1,4 +1,4 @@
-import config from '../config.js';
+import config from '../data/config.js';
 
 // Set up our document
 const canvas = document.createElement('canvas');
@@ -46,4 +46,4 @@ resizeCanvas();
 window.addEventListener('resize',resizeCanvas);
 window.addEventListener('orientationchange',resizeCanvas);
 
-export { canvas, canvas2, gl, ctx }
+export { canvas, canvas2, gl, ctx, scale }

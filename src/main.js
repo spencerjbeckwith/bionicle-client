@@ -1,12 +1,6 @@
-
 import { loadTexture, beginRender, drawGameTexture, } from './shader/gl.js';
-
-import { drawSprite, drawSpriteSwap, spr } from './sprite.js';
-
-import { palettes } from './shader/color.js';
-
-import { ctx } from './shader/gl.js';
-import config from './config.js';
+import Battle from './battle.js';
+import Input from './input.js';
 
 // Main loop
 function main() {
@@ -36,22 +30,11 @@ function main() {
     drawMasks(200,200,6,palettes.matau,spr.headSecondary);
 
     */
-    drawSpriteSwap(spr.statusbar,0,0,0,palettes.tahu);
-    drawSpriteSwap(spr.statusbar,0,0,64,palettes.pohatu);
-    drawSpriteSwap(spr.statusbar,0,0,128,palettes.onua);
-    drawSpriteSwap(spr.statusbar,0,226,0,palettes.kopaka);
-    drawSpriteSwap(spr.statusbar,0,226,64,palettes.gali);
-    drawSpriteSwap(spr.statusbar,0,226,128,palettes.lewa);
-
-    ctx.fillStyle = 'white';
-    ctx.font = config.font;
-    ctx.fillText('Hello world!',16,16);
-    ctx.font = '10px metru';
-    ctx.fillText('Hello world!',16,80);
-    ctx.font = '10px voya';
-    ctx.fillText('Hello world!',16,144)
+    
+    Battle.step();
 
     drawGameTexture();
+    Input.reset();
     requestAnimationFrame(main);
 }
 

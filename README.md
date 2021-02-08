@@ -4,8 +4,11 @@ Bionicle MMO set on Mata-Nui where you play as a Toa, collect your Kanohi, and f
 **BIONICLE and Lego are a trademarks of the Lego Group. This project is not endorsed by them in any way. Additionally, this project is completely free and always will be. All code and assets I've created are free to use.**
 
 # To-Do:
-- Draw HUD elements
-- Begin stuff
+- Add input and mouse interact stuff
+- interacting with panels
+- panel animation frames
+- battle begins
+- fighter generation
 - everything lol
 
 # Credits

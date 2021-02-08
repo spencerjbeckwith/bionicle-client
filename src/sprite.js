@@ -1,6 +1,6 @@
 import Matrix from './util/matrix.js';
-import ATLAST from './atlas.js';
-import config from './config.js';
+import ATLAST from './data/atlas.js';
+import config from './data/config.js';
 
 import { imageShader, swapShader } from './shader/init.js';
 import { gl } from './shader/gl.js';

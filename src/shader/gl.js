@@ -1,4 +1,4 @@
-import config from '../config.js';
+import config from '../data/config.js';
 import { gl, ctx, canvas } from './document.js';
 import { imageShader, primitiveShader } from './init.js';
 

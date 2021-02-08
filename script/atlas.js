@@ -3,7 +3,6 @@
 
 const fs = require(`fs`);
 const Jimp = require(`jimp`);
-const readlineSync = require(`readline-sync`);
 
 const config = {
     directory: 'asset/spr',
@@ -14,7 +13,7 @@ const config = {
     verticalPlacement: false,
     outputImageName: 'asset/atlas.png',
     outputWhitespace: 2,
-    outputName: 'src/atlas.js'
+    outputName: 'src/data/atlas.js'
 }
 
 const sprites = [];
