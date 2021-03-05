@@ -29,4 +29,13 @@ function lerpTo(a,b,factor,threshold = 0.1) {
     return a;
 }
 
-export { lerp, lerpTo }
+/**
+ * Randomly selects an item in the provided array and returns it
+ * @param {Object[]} selectionArray Array of items to select from
+ */
+function choose(selectionArray) {
+    const index = Math.floor(Math.random()*selectionArray.length);
+    return selectionArray[index];
+}
+
+export { lerp, lerpTo, choose }

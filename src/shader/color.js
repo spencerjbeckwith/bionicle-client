@@ -1,3 +1,5 @@
+import '../data/typedefs.js';
+
 // Lego colors (to swap palettes)
 const colors = {
     red: 'c4281b',
@@ -92,6 +94,7 @@ function Palette(primaryHex,secondaryHex,eyeHex,primaryChangeFactor = 0.2,second
     ];
 }
 
+/** @type {PaletteObject} */
 const palettes = {
     tahu: new Palette(colors.red,colors.orange,colors.darkPink),
     pohatu: new Palette(colors.brown,colors.tan,colors.orange),
@@ -106,7 +109,10 @@ const palettes = {
     nokama: new Palette(colors.mediumBlue,colors.blue,colors.yellow),
     matau: new Palette(colors.lime,colors.green,colors.lime),
 
-    // More palettes here!
+    muaka: new Palette(colors.red,colors.metallicSilver,colors.yellow),
+    nuiJaga1: new Palette(colors.mediumBlue,colors.red,colors.darkGray),
+    nuiJaga2: new Palette(colors.purple,colors.yellow,colors.darkGray),
+    // More palettes here! Don't forget to also add them in data/typedefs.js!
 
     // You can also use the Palette constructor to make them on the fly for randomly-generated matoran/rahi
 }

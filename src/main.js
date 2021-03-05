@@ -1,6 +1,7 @@
 import { loadTexture, beginRender, drawGameTexture, } from './shader/gl.js';
 import Battle from './battle.js';
 import Input from './input.js';
+import Waves from './util/waves.js';
 
 // Main loop
 function main() {
@@ -35,6 +36,7 @@ function main() {
 
     drawGameTexture();
     Input.reset();
+    Waves.increment();
     requestAnimationFrame(main);
 }
 

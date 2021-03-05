@@ -1,6 +1,7 @@
 import Matrix from './util/matrix.js';
 import ATLAST from './data/atlas.js';
 import config from './data/config.js';
+import './data/typedefs.js';
 
 import { imageShader, swapShader } from './shader/init.js';
 import { gl } from './shader/gl.js';
@@ -23,6 +24,10 @@ class Sprite {
 }
 
 function limitImage(spr,image) {
+    if (spr === undefined) {
+        console.trace();
+        throw new Error('Tried to draw a non-existant sprite! Did you forgt to compile the atlas?');
+    }
     image = Math.floor(image);
     if (!spr.images[image]) {
         image -= spr.images.length;
@@ -132,7 +137,9 @@ function drawSpriteSwap(sprite,image,x,y,palette,a = 1,r = 1,g = 1,b = 1,transfo
 // Or even better: make a "startDraw" and an "endDraw" that allows you to apply whatever transformations you want.
 
 // Load all sprites from our atlas map
+/** @type {SpriteObject} */
 const spr = {};
+
 for (let index in ATLAST) {
     const sprite = ATLAST[index];
     spr[sprite.name] = new Sprite(sprite.name,sprite.width,sprite.height,sprite.images);

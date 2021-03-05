@@ -1,3 +1,5 @@
+import { drawSpriteSwap, spr } from "../sprite.js";
+
 class Panel {
     constructor(x,y) {
         this.parent = null;
@@ -34,10 +36,14 @@ class Panel {
 
 // Panel types
 class Statusbar extends Panel {
-    constructor(x,y) {
-        super(x,y);
+    constructor(palette) {
+        super(87,0);
+        this.palette = palette;
     }
-    //...?
+    step() {
+        super.step();
+        drawSpriteSwap(spr.statusbar,0,this.x,this.y,this.palette);
+    }
 }
 
 class TurnTimer extends Panel {

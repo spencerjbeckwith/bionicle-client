@@ -1,6 +1,13 @@
 import './data/typedefs.js';
 export default class Fighter {
-    constructor(name,palette,masksArray) {
+    /**
+     * Makes a new fighter for battle.
+     * @param {string} name 
+     * @param {Palette} palette 
+     * @param {KanohiMask[]} masksArray Array of masks this fighter can use. First mask is their default
+     * @param {Stats} initialStats What stats to initialize the fighter with
+     */
+    constructor(name,palette,masksArray,initialStats) {
         // Initialze stats
         this.name = name;
         this.palette = palette;
@@ -18,22 +25,27 @@ export default class Fighter {
         // do @type status
         this.status = [];
 
-        this.hp = 10;
-        this.maxhp = 10;
-        this.nova = 10;
-        this.maxnova = 10;
+        /** @type {Stats} */
+        this.stats = {
+            hp: initialStats.hp,
+            maxhp: initialStats.hp,
+            nova: initialStats.nova,
+            maxnova: initialStats.nova,
 
-        this.agility = 10;      // Evasion / speed
-        this.strength = 10;     // Damage dealt physically
-        this.toughness = 10;    // Damage resisted
-        this.mind = 10;         // Damage dealt w/ elements
-        this.accuracy = 10;     // Likelyhood to land hits
-        this.critical = 10;     // Likelyhood to land critical hits
+            agility: initialStats.agility,
+            strength: initialStats.strength,
+            toughness: initialStats.toughness,
+            mind: initialStats.mind,
+            accuracy: initialStats.accuracy,
+            critcial: initialStats.critical
+        }
 
     }
 
     // What methods?
 }
+
+
 
 // Later: figure out if this actually has to be a class
 // And also figure out how the stats ought to be set per fighter
